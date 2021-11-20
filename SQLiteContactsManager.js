@@ -1,9 +1,8 @@
 const sqlite3 = require('sqlite3');
-require('dotenv').config({path:'/.env'});
-
-const db = new sqlite3.Database("process.env.DB");
-
-module.exports = class SQLiteContactsManager {
+require('dotenv').config();
+  
+const db = new sqlite3.Database(process.env.DB);
+ module.exports = class SQLiteContactsManager {
 constructor() {
     this.init();
 }
