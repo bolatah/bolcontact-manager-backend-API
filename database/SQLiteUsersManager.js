@@ -13,16 +13,19 @@ module.exports = class SQLiteUsersManager {
         users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL CHECK(username<>''),
+            email TEXT UNIQUE NOT NULL CHECK(email<>''),
+            phone INTEGER UNIQUE NOT NULL CHECK(phone<>''),
             password TEXT NOT NULL CHECK(password<>'')
+
         )`);
   }
   async addUser(user) {
     return new Promise((resolve, reject) => {
       db.run(
         `INSERT
-                INTO users(username, password)
-                VALUES(?,?)`,
-        [user.username, user.password],
+                INTO users(username, email, phone, password)
+                VALUES(?,?, ?, ?)`,
+        [user.username, user.email, user.phone, user.password],
         function () {
           resolve(this.lastID);
         }
@@ -30,7 +33,19 @@ module.exports = class SQLiteUsersManager {
     });
   }
 
-  async getUser(username) {
+  async getUserByEmail(email) {
+    return new Promise((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE email=?`, [email], (error, row) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  async getUserByUsername(username) {
     return new Promise((resolve, reject) => {
       db.get(
         `SELECT * FROM users WHERE username=?`,
