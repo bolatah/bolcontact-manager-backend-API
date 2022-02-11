@@ -1,7 +1,4 @@
 **/node_modules
 .env
 *.db
-Dockerfile
-dockerignore
-leitfaden.md
-sessions
+pictures
