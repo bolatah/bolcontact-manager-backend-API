@@ -13,7 +13,19 @@ const HOST = process.env.HOST || "localhost";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Accept",
+      "x-access-token",
+      "x-access-token-expiration",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 // app.use(
 //   fileUpload({
@@ -26,6 +38,8 @@ app.use(express.json());
 
 const contactsManager = new ContactsManager();
 const usersManager = new UsersManager();
+
+// app.options("*", cors());
 
 // Route for user-register
 app.post("/api/users/register", async (req, res) => {
@@ -122,7 +136,7 @@ app.get("/api/users/:id", async (req, res) => {
 });
 
 // Route for adding contact
-app.post("/api/contacts", async (req, res) => {
+app.post("/api/contacts", auth, async (req, res) => {
   const contact = req.body;
   const id = await contactsManager.addContact(contact);
   contact.href = `/api/contacts/${id}`;
@@ -152,30 +166,10 @@ app.post("/api/contacts/upload", async (req, res) => {
     }
     return res.status(200).send(req.file);
   });
-
-  // if (!req.files) {
-  //   return res.status(400).send("No files were uploaded");
-  // }
-  // const path = require("path");
-  // const file = req.files.contactPicture;
-  // const extensionName = path.extname(file?.name); // fetch the file extension
-  // const allowedExtension = [".png", ".jpg", ".jpeg"];
-  // const path_ = __dirname + "/pictures/" + file.name;
-
-  // if (!allowedExtension.includes(extensionName)) {
-  //   return res.status(422).send("Invalid Image");
-  // }
-
-  // file.mv(path_, (err) => {
-  //   if (err) {
-  //     return res.status(500).send(err);
-  //   }
-  //   return res.send({ status: "success", path: path });
-  // });
 });
 
 //Route for showing all contacts
-app.get("/api/contacts", async (req, res) => {
+app.get("/api/contacts", auth, async (req, res) => {
   const contacts = await contactsManager.getContacts();
   contacts.forEach((contact) => {
     contact.href = `/api/contacts/${contact.id}`;
@@ -220,10 +214,3 @@ app.delete("/api/contacts/:id", auth, async (req, res) => {
 const server = app.listen(PORT, () => {
   console.log(`web service laueft unter http://${HOST}:${PORT}`);
 });
-
-//Route for log-out
-// app.post("api/users/logout", async (req, res) => {
-//   if (error) throw error;
-//   console.log("User logout");
-//   res.redirect("/");
-// });
