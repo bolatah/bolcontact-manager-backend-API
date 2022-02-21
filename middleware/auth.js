@@ -13,9 +13,6 @@ const verifyToken = (req, res, next) => {
     // verifies secret and checks exp
     jwt.verify(token, config.TOKEN_KEY, function (err, decoded) {
       if (err) {
-        console.log(token);
-        console.log(config.TOKEN_KEY);
-
         return res.status(403).send({
           success: false,
           message: "Failed to authenticate token.",
@@ -23,7 +20,6 @@ const verifyToken = (req, res, next) => {
       } else {
         // if everything is good, save to request for use in other routes
         req.decoded = decoded;
-
         // the next function is important since it must be called from a middleware for the next middleware to be executed
         //  If this function is not called then none of the other middleware including the controller action will be called.
         next();
@@ -31,7 +27,7 @@ const verifyToken = (req, res, next) => {
     });
   } else {
     // if there is no token, return an error
-    return res.status(403).send({
+    res.status(403).send({
       success: false,
       message: "No token provided.",
     });

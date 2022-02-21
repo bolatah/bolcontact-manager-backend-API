@@ -44,12 +44,42 @@ module.exports = class SQLiteUsersManager {
       });
     });
   }
-
+  async count(email, username) {
+    return new Promise((resolve, reject) => {
+      db.get(
+        `SELECT count(*) as c1 FROM users WHERE email=? or username = ?`,
+        [email, username],
+        (error, row) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(row.c1);
+          }
+        }
+      );
+    });
+  }
   async getUserByUsername(username) {
     return new Promise((resolve, reject) => {
       db.get(
         `SELECT * FROM users WHERE username=?`,
         [username],
+        (error, row) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(row);
+          }
+        }
+      );
+    });
+  }
+
+  async getUserByUsernameOrEmail(usernameOrEmail) {
+    return new Promise((resolve, reject) => {
+      db.get(
+        `SELECT * FROM users WHERE username=? or email=?`,
+        [usernameOrEmail, usernameOrEmail],
         (error, row) => {
           if (error) {
             reject(error);
