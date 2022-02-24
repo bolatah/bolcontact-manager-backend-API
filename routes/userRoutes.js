@@ -23,7 +23,7 @@ router.post("/register", async (req, res) => {
     }
 
     // check if user already exist
-    const oldUser = await usersManager.count(email, username);
+    const oldUser = await usersManager.getCountUser(email, username);
     if (oldUser > 0) {
       return res.status(409).send("User Already Exist. Please Login");
     }
@@ -57,7 +57,6 @@ router.post("/login", async (req, res) => {
 
     // validate if user exist in our database
     const user = await usersManager.getUserByUsernameOrEmail(username);
-    console.log(user);
     if (user && (await bcrypt.compare(password, user.password))) {
       const token = jwt.sign(
         { user_id: user.id, email: user.email },

@@ -44,7 +44,7 @@ module.exports = class SQLiteUsersManager {
       });
     });
   }
-  async count(email, username) {
+  async getCountUser(email, username) {
     return new Promise((resolve, reject) => {
       db.get(
         `SELECT count(*) as c1 FROM users WHERE email=? or username = ?`,

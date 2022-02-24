@@ -1,22 +1,9 @@
 const express = require("express");
 const cors = require("cors");
-
+// const auth = require("./middleware/auth");
 const app = express();
 const PORT = process.env.PORT || 8000;
 const HOST = process.env.HOST || "localhost";
-
-// start uploading
-const multer = require("multer");
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "pictures");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-const upload = multer({ storage: storage }).single("contactpicture");
-// end uploading
 
 const userRoute = require("./routes/userRoutes");
 const contactRoute = require("./routes/contactRoutes");
