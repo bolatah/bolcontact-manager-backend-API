@@ -16,6 +16,10 @@ module.exports = class SQLiteContactsManager {
             name TEXT,
             email TEXT,
             message TEXT,
+            filename TEXT, 
+            mimetype TEXT,                         
+            size INTEGER,                         
+            dateCreated DATE
         )`);
 
     db.run(`
@@ -29,19 +33,6 @@ module.exports = class SQLiteContactsManager {
             dateCreated DATE
           )
         `);
-  }
-  async addContact(contact) {
-    return new Promise((resolve, reject) => {
-      db.run(
-        `INSERT
-                INTO contacts(name, email, message)
-                VALUES(?,?,?)`,
-        [contact.name, contact.email, contact.message],
-        function () {
-          resolve(this.lastID);
-        }
-      );
-    });
   }
 
   async getContact(id) {
@@ -101,58 +92,97 @@ module.exports = class SQLiteContactsManager {
     });
   }
 
-  async uploadSingleFile(contactId, file) {
+  async addContact(contact, files) {
     return new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO contactImages (contactId, filename, mimetype, size, dateCreated) VALUES (?,?,?,?,?)`,
-        [contactId, file.filename, file.mimetype, file.size, Date("now")],
-        function () {
-          resolve(this.lastID);
-          const dir = `./images/${contactId}/`;
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-          }
-
-          const oldPath = `./images/${file.filename}`;
-          const newPath = `./images/${contactId}/${file.filename}.jpg`;
-
-          fs.rename(oldPath, newPath, function (err) {
-            if (err) {
-              console.error(err);
-            }
-            console.log("Successfully Moved File");
-          });
-        }
-      );
-    });
-  }
-
-  async uploadMultipleFiles(contactId, files) {
-    return new Promise((resolve, reject) => {
-      const dir = `./images/${contactId}/`;
-
+      const dir = `./images/${this.lastID}/`;
       files.forEach((file) => {
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir, { recursive: true });
         }
+
         const newFileName = `${uuidv4()}`;
-        const newPath = `./images/${contactId}/${newFileName}.jpg`;
+        const newPath = `./images/${this.lastID}/${newFileName}.jpg`;
         const imageBinary = Buffer.from(file.filename);
-        console.log(imageBinary);
         fs.writeFile(newPath, imageBinary, "base64", function (err) {
           if (err) {
             console.error(err);
           }
           console.log("Successfully Moved File");
         });
+        db.run(
+          `INSERT
+                INTO contacts (name, email, message, mimetype, filename, size, dateCreated)
+                VALUES(?,?,?, ?,?,?,?)`,
+          [
+            contact.name,
+            contact.email,
+            contact.message,
+            file.mimetype,
+            newFileName,
+            file.size,
+            Date("now"),
+          ],
+          function () {
+            resolve(this.lastID);
+            console.log(this.lastID);
+          }
+        );
       });
-      db.run(
-        `INSERT INTO contactImages (contactId, filename, mimetype, size, dateCreated) VALUES (?,?,?,?,?)`,
-        [contactId, files.filename, files.mimetype, files.size, Date("now")],
-        function () {
-          resolve(this.lastID);
-        }
-      );
     });
   }
+
+  // async uploadSingleFile(contactId, file) {
+  //   return new Promise((resolve, reject) => {
+  //     db.run(
+  //       `INSERT INTO contactImages (contactId, filename, mimetype, size, dateCreated) VALUES (?,?,?,?,?)`,
+  //       [contactId, file.filename, file.mimetype, file.size, Date("now")],
+  //       function () {
+  //         resolve(this.lastID);
+  //         const dir = `./images/${contactId}/`;
+  //         if (!fs.existsSync(dir)) {
+  //           fs.mkdirSync(dir, { recursive: true });
+  //         }
+
+  //         const oldPath = `./images/${file.filename}`;
+  //         const newPath = `./images/${contactId}/${file.filename}.jpg`;
+
+  //         fs.rename(oldPath, newPath, function (err) {
+  //           if (err) {
+  //             console.error(err);
+  //           }
+  //           console.log("Successfully Moved File");
+  //         });
+  //       }
+  //     );
+  //   });
+  // }
+
+  // async uploadMultipleFiles(contactId, files) {
+  //   return new Promise((resolve, reject) => {
+  //     const dir = `./images/${contactId}/`;
+
+  //     files.forEach((file) => {
+  //       if (!fs.existsSync(dir)) {
+  //         fs.mkdirSync(dir, { recursive: true });
+  //       }
+  //       const newFileName = `${uuidv4()}`;
+  //       const newPath = `./images/${contactId}/${newFileName}.jpg`;
+  //       const imageBinary = Buffer.from(file.filename);
+  //       console.log(imageBinary);
+  //       fs.writeFile(newPath, imageBinary, "base64", function (err) {
+  //         if (err) {
+  //           console.error(err);
+  //         }
+  //         console.log("Successfully Moved File");
+  //       });
+  //     });
+  //     db.run(
+  //       `INSERT INTO contactImages (contactId, filename, mimetype, size, dateCreated) VALUES (?,?,?,?,?)`,
+  //       [contactId, files.filename, files.mimetype, files.size, Date("now")],
+  //       function () {
+  //         resolve(this.lastID);
+  //       }
+  //     );
+  //   });
+  // }
 };
