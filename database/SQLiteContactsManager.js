@@ -1,9 +1,9 @@
 const sqlite3 = require("sqlite3");
 require("dotenv").config();
 const fs = require("fs");
-const { resolve } = require("path/posix");
 const db = new sqlite3.Database(process.env.DB);
 const { v4: uuidv4 } = require("uuid");
+const { Console } = require("console");
 module.exports = class SQLiteContactsManager {
   constructor() {
     this.init();
@@ -13,26 +13,39 @@ module.exports = class SQLiteContactsManager {
     CREATE TABLE IF NOT EXISTS
         contacts(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT,
+            name TEXT UNIQUE ,
+            email TEXT UNIQUE ,
+            phone INTEGER UNIQUE  ,
             message TEXT,
-            filename TEXT, 
-            mimetype TEXT,                         
-            size INTEGER,                         
-            dateCreated DATE
+            filename TEXT,    
+            path TEXT ,                       
+            size INTEGER ,
+            mimetype TEXT ,                
+            dateCreated DATE 
         )`);
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS
-          contactImages(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            contactId INTEGER,                         
-            mimetype TEXT,                         
-            filename TEXT,                         
-            size INTEGER,                         
-            dateCreated DATE
-          )
-        `);
+  }
+  async addContact(contact) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        `INSERT
+                INTO contacts(name, email, phone, message, filename, path, size, mimetype, dateCreated)
+                VALUES(?,?,?,?,?,?,?,?,?)`,
+        [
+          contact.name,
+          contact.email,
+          contact.phone,
+          contact.message,
+          contact.filename,
+          `/home/bolat/projects/contact-manager/backend/images/${contact.name}/${contact.filename}.jpeg`,
+          contact.size,
+          contact.mimetype,
+          new Date(Date.now()).toString(),
+        ],
+        function () {
+          resolve(this.lastID);
+        }
+      );
+    });
   }
 
   async getContact(id) {
@@ -53,10 +66,11 @@ module.exports = class SQLiteContactsManager {
         `UPDATE contacts SET
                                 name = ?,
                                 email = ?,
+                                phone = ?,
                                 message = ?
                             WHERE 
                                 id = ?`,
-        [contact.name, contact.email, contact.message, id],
+        [contact.name, contact.email, contact.phone, contact.message, id],
         (error, row) => {
           if (error) {
             reject(error);
@@ -91,98 +105,4 @@ module.exports = class SQLiteContactsManager {
       });
     });
   }
-
-  async addContact(contact, files) {
-    return new Promise((resolve, reject) => {
-      const dir = `./images/${this.lastID}/`;
-      files.forEach((file) => {
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-
-        const newFileName = `${uuidv4()}`;
-        const newPath = `./images/${this.lastID}/${newFileName}.jpg`;
-        const imageBinary = Buffer.from(file.filename);
-        fs.writeFile(newPath, imageBinary, "base64", function (err) {
-          if (err) {
-            console.error(err);
-          }
-          console.log("Successfully Moved File");
-        });
-        db.run(
-          `INSERT
-                INTO contacts (name, email, message, mimetype, filename, size, dateCreated)
-                VALUES(?,?,?, ?,?,?,?)`,
-          [
-            contact.name,
-            contact.email,
-            contact.message,
-            file.mimetype,
-            newFileName,
-            file.size,
-            Date("now"),
-          ],
-          function () {
-            resolve(this.lastID);
-            console.log(this.lastID);
-          }
-        );
-      });
-    });
-  }
-
-  // async uploadSingleFile(contactId, file) {
-  //   return new Promise((resolve, reject) => {
-  //     db.run(
-  //       `INSERT INTO contactImages (contactId, filename, mimetype, size, dateCreated) VALUES (?,?,?,?,?)`,
-  //       [contactId, file.filename, file.mimetype, file.size, Date("now")],
-  //       function () {
-  //         resolve(this.lastID);
-  //         const dir = `./images/${contactId}/`;
-  //         if (!fs.existsSync(dir)) {
-  //           fs.mkdirSync(dir, { recursive: true });
-  //         }
-
-  //         const oldPath = `./images/${file.filename}`;
-  //         const newPath = `./images/${contactId}/${file.filename}.jpg`;
-
-  //         fs.rename(oldPath, newPath, function (err) {
-  //           if (err) {
-  //             console.error(err);
-  //           }
-  //           console.log("Successfully Moved File");
-  //         });
-  //       }
-  //     );
-  //   });
-  // }
-
-  // async uploadMultipleFiles(contactId, files) {
-  //   return new Promise((resolve, reject) => {
-  //     const dir = `./images/${contactId}/`;
-
-  //     files.forEach((file) => {
-  //       if (!fs.existsSync(dir)) {
-  //         fs.mkdirSync(dir, { recursive: true });
-  //       }
-  //       const newFileName = `${uuidv4()}`;
-  //       const newPath = `./images/${contactId}/${newFileName}.jpg`;
-  //       const imageBinary = Buffer.from(file.filename);
-  //       console.log(imageBinary);
-  //       fs.writeFile(newPath, imageBinary, "base64", function (err) {
-  //         if (err) {
-  //           console.error(err);
-  //         }
-  //         console.log("Successfully Moved File");
-  //       });
-  //     });
-  //     db.run(
-  //       `INSERT INTO contactImages (contactId, filename, mimetype, size, dateCreated) VALUES (?,?,?,?,?)`,
-  //       [contactId, files.filename, files.mimetype, files.size, Date("now")],
-  //       function () {
-  //         resolve(this.lastID);
-  //       }
-  //     );
-  //   });
-  // }
 };

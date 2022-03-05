@@ -1,0 +1,24 @@
+GET http://localhost:8000/api/contacts  
+x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywidXNlcm5hbWUiOiJ1c2VyNTg5IiwiZW1haWwiOiJ1c2VyNTg5QHVzZXIuY29tIiwicGhvbmUiOjE3MDg0OTgsInBhc3N3b3JkIjoiJDJhJDEwJEZVUmJ0R1U3d3hlZVh3U29WYXQ4WmVTRnl0emVOZVZYMnh0aUIzU1JMbFJiUEl3QzZUNmZLIiwiaWF0IjoxNjQ2MDU5MzE2LCJleHAiOjE2NDYwNjY1MTZ9.fe4Z0jnGTIKqzdnKvtRrN_-jardWRlV-DYC3lr3sc-c
+###
+
+POST http://localhost:8000/api/contacts/
+
+###
+
+POST  http://localhost:8000/api/users/login
+Content-Type: application/json
+
+{
+    "username": "user589",
+    "password": "123456"
+}
+
+###
+
+POST http://localhost:8000/api/users/token
+Content-Type: application/json
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywidXNlcm5hbWUiOiJ1c2VyNTg5IiwiZW1haWwiOiJ1c2VyNTg5QHVzZXIuY29tIiwicGhvbmUiOjE3MDg0OTgsInBhc3N3b3JkIjoiJDJhJDEwJEZVUmJ0R1U3d3hlZVh3U29WYXQ4WmVTRnl0emVOZVZYMnh0aUIzU1JMbFJiUEl3QzZUNmZLIiwiaWF0IjoxNjQ2MDU5MzE2fQ.h55c4tT4FimeTCzfYy6wRQ29iID5bv40nb99Pyn7ZXI"
+}

@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const router = express.Router();
@@ -12,11 +14,12 @@ const usersManager = new UsersManager();
 
 router.use(express.json(), cors(corsOptions));
 
+let refreshTokens = [];
+
 // Route for user-register
 router.post("/register", async (req, res) => {
   try {
     const { username, email, phone, password } = req.body;
-    console.log(req.body);
     // validate user input
     if (!(username && email && phone && password)) {
       res.status(400).send("All inputs are required");
@@ -44,6 +47,20 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// route for refresh token
+router.post("/refresh", async (req, res) => {
+  const refreshToken = req.body.token;
+  // const username = req.body.username;
+
+  if (refreshToken == null) return res.status(401);
+  if (!refreshTokens.includes(refreshToken)) return res.status(403);
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, (err, user) => {
+    if (err) return res.status(403);
+    const accessToken = generateAccessToken({ username: user.username });
+    res.json(accessToken);
+  });
+});
+
 // Route for user-login
 router.post("/login", async (req, res) => {
   try {
@@ -52,31 +69,38 @@ router.post("/login", async (req, res) => {
 
     // validate user input
     if (!(username && password)) {
-      res.status(400).send("All inputs are srequired");
+      res.status(400).send("All inputs are required");
     }
 
     // validate if user exist in our database
     const user = await usersManager.getUserByUsernameOrEmail(username);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const token = jwt.sign(
-        { user_id: user.id, email: user.email },
-        process.env.TOKEN_KEY,
-        {
-          expiresIn: process.env.REACT_APP_EXPIRATION,
-        }
+      const accessToken = generateAccessToken({ username: user.username });
+      const refreshToken = jwt.sign(
+        { username: user.username },
+        process.env.REFRESH_TOKEN_KEY
       );
-      console.log(token);
-      // save user token
-      user.token = token;
-      console.log(token);
+      refreshTokens.push(refreshToken);
+      // save user tokens
+
+      user.accessToken = accessToken;
+      user.refreshToken = refreshToken;
+
       // user
-      res.status(200).json(user);
+      res.status(200).json(user, accessToken, refreshToken);
     } else {
       res.status(400).send("Invalid Credentials");
     }
   } catch (err) {
     console.log(err);
   }
+});
+
+// Route for log out
+router.delete("/logout", auth, (req, res) => {
+  refreshTokens = refreshTokens
+    .filter((token) => token !== req.body.token)
+    .res.status(204);
 });
 
 // Route for getting all users
@@ -104,5 +128,11 @@ router.get("/:id", auth, async (req, res) => {
     res.status(404).send();
   }
 });
+
+function generateAccessToken(user) {
+  return jwt.sign({ username: user.username }, process.env.ACCESS_TOKEN_KEY, {
+    expiresIn: process.env.REACT_APP_EXPIRATION,
+  });
+}
 
 module.exports = router;
