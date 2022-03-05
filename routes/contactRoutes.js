@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const cors = require("cors");
 const fs = require("fs");
+// const { v4: uuidv4 } = require("uuid");
 
 const corsOptions = require("../repositories/utils");
 const auth = require("../middleware/auth");
@@ -15,28 +16,37 @@ const { resolve } = require("path");
 const upload = multer({ dest: "./images/" }).single("file");
 const uploads = multer({ dest: "./images/" }).array("files", 3);
 
-// Route for adding contact
-router.post("/", auth, async (req, res) => {
+// Route for adding contact with file upload
+router.post("/", auth, upload, async (req, res) => {
   try {
-    uploads(req, res, async (err) => {
-      if (err) {
-        res.status(400).send("Something went wrong!");
-      } else {
-        const files = req.files;
-        const contact = req.body;
-        const id = await contactsManager.addContact(contact, files);
+    const textForm = req.body;
+    const fileForm = req.file;
+    const contact = Object.assign(textForm, fileForm);
+    const id = await contactsManager.addContact(contact);
+    const dir = `./images/${contact.name}/`;
 
-        contact.href = `/api/contacts/${id}`;
-        res.status(201).location(contact.href).send(contact);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    // const oldPath = `./images/${contact.filename}`;
+    // const newFileName = `${uuidv4()}`;
+    const newPath = `${dir}/${contact.filename}.jpg`;
+    const imageBinary = Buffer.from(`${contact.filename}`, "base64");
+    fs.writeFile(newPath, imageBinary, "base64", function (err) {
+      if (err) {
+        console.error(err);
       }
+      console.log("Successfully Moved File");
     });
+    contact.href = `/api/contacts/${id}`;
+    res.status(201).location(`/api/contacts/${id}`).send(contact);
   } catch (err) {
     console.log(err);
   }
 });
 
 //Route for showing all contacts
-router.get("/", auth, async (req, res) => {
+router.get("/", async (req, res) => {
   const contacts = await contactsManager.getContacts();
   contacts.forEach((contact) => {
     contact.href = `/api/contacts/${contact.id}`;
@@ -45,7 +55,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // Route for showing a contact by id
-router.get("/:id", auth, async (req, res) => {
+router.get("/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   const contact = await contactsManager.getContact(id);
   if (contact) {
