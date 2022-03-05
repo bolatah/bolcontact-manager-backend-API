@@ -13,38 +13,49 @@ module.exports = class SQLiteContactsManager {
     CREATE TABLE IF NOT EXISTS
         contacts(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE ,
-            email TEXT UNIQUE ,
-            phone INTEGER UNIQUE  ,
+            name TEXT ,
+            email TEXT ,
+            phone INTEGER  ,
             message TEXT,
-            filename TEXT,    
-            path TEXT ,                       
-            size INTEGER ,
-            mimetype TEXT ,                
+            img TEXT,                    
             dateCreated DATE 
         )`);
   }
-  async addContact(contact) {
+  async addContact(contact, imgBase64) {
     return new Promise((resolve, reject) => {
       db.run(
         `INSERT
-                INTO contacts(name, email, phone, message, filename, path, size, mimetype, dateCreated)
-                VALUES(?,?,?,?,?,?,?,?,?)`,
+                INTO contacts(name, email, phone, message, img, dateCreated)
+                VALUES(?,?,?,?,?,?); select last_insert_rowid();`,
         [
           contact.name,
           contact.email,
           contact.phone,
           contact.message,
-          contact.filename,
-          `/home/bolat/projects/contact-manager/backend/images/${contact.name}/${contact.filename}.jpeg`,
-          contact.size,
-          contact.mimetype,
+          imgBase64,
           new Date(Date.now()).toString(),
         ],
-        function () {
-          resolve(this.lastID);
+        function (r, e) { 
+          console.log("insert contact cb",r,e)
+          if(e){
+            reject(e);
+          }else{ 
+            resolve();
+          }
         }
       );
+    });
+  }
+
+  async getContactImage(id) {
+    return new Promise((resolve, reject) => {
+      db.all("SELECT img FROM contacts WHERE id=?", [id], (error, row) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(row);
+        }
+      });
     });
   }
 
