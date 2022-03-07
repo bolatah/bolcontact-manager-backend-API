@@ -1,7 +1,7 @@
 const sqlite3 = require("sqlite3");
 require("dotenv").config();
 
-const db = new sqlite3.Database(process.env.DBUsers);
+const db = new sqlite3.Database(process.env.DB);
 
 module.exports = class SQLiteUsersManager {
   constructor() {

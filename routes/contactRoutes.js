@@ -12,37 +12,15 @@ const ContactsManager = require("../database/SQLiteContactsManager");
 const contactsManager = new ContactsManager();
 
 const multer = require("multer");
-const { resolve } = require("path");
-const upload = multer({ dest: "./images/" }).single("file");
-const uploads = multer({ dest: "./images/" }).array("files", 3);
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Route for adding contact with file upload
-router.post("/", auth, upload, async (req, res) => {
-  try {
-    const textForm = req.body;
-    const fileForm = req.file;
-    const contact = Object.assign(textForm, fileForm);
-    const id = await contactsManager.addContact(contact);
-    const dir = `./images/${contact.name}/`;
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    // const oldPath = `./images/${contact.filename}`;
-    // const newFileName = `${uuidv4()}`;
-    const newPath = `${dir}/${contact.filename}.jpg`;
-    const imageBinary = Buffer.from(`${contact.filename}`, "base64");
-    fs.writeFile(newPath, imageBinary, "base64", function (err) {
-      if (err) {
-        console.error(err);
-      }
-      console.log("Successfully Moved File");
-    });
-    contact.href = `/api/contacts/${id}`;
-    res.status(201).location(`/api/contacts/${id}`).send(contact);
-  } catch (err) {
-    console.log(err);
-  }
+router.post("/", auth, upload.single("file"), async (req, res) => {
+  const contact = req.body;
+  const fileForm = req.file;
+  let imgBase64 = fileForm.buffer?.toString("base64") ?? "";
+  let newContact = await contactsManager.addContact(contact, imgBase64);
+  res.status(201).location(`/api/contacts`).send(newContact);
 });
 
 //Route for showing all contacts
@@ -63,6 +41,13 @@ router.get("/:id", async (req, res) => {
   } else {
     res.status(404).send();
   }
+});
+
+router.get("/img/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  const c = await contactsManager.getContactImage(id);
+  res.buffer(Buffer.from(c.img, "base64"));
+  res.send();
 });
 
 // Route for updating a contact
