@@ -1,11 +1,11 @@
-const sqlite3 = require("sqlite3");
+import { Database } from "sqlite3";
 import { User } from "../models/user";
+import { config } from "../server";
 
-require("dotenv").config();
 
-const dbUsers = new sqlite3.Database(process.env.DB);
+const dbUsers = new Database(config.DB);
 
-module.exports = class SQLiteUsersManager {
+export class SQLiteUsersManager {
   constructor() {
     this.init();
   }
@@ -21,15 +21,21 @@ module.exports = class SQLiteUsersManager {
 
         )`);
   }
-  async addUser(user: User) {
-    return new Promise((resolve, _reject) => {
+
+  async addUser(user: User): Promise<any> {
+    return new Promise((resolve, reject) => {
       dbUsers.run(
         `INSERT
                 INTO users(username, email, phone, password)
-                VALUES(?,?, ?, ?)`,
+                VALUES(?,?, ?, ?);  select last_insert_rowid();`,
         [user.username, user.email, user.phone, user.password],
-        function () {
-          resolve(dbUsers.lastID);
+        function (err, rows) {
+          if (err) {
+            reject(err);
+          } else {
+
+            resolve(rows);
+          }
         }
       );
     });
@@ -40,7 +46,7 @@ module.exports = class SQLiteUsersManager {
       dbUsers.get(
         `SELECT * FROM users WHERE email=?`,
         [email],
-        (error: any, row: unknown) => {
+        (error: any, row: any) => {
           if (error) {
             reject(error);
           } else {
@@ -50,12 +56,12 @@ module.exports = class SQLiteUsersManager {
       );
     });
   }
-  async getCountUser(email: string, username: string) {
+  async getCountUser(email: string, username: string): Promise<any> {
     return new Promise((resolve, reject) => {
       dbUsers.get(
         `SELECT count(*) as c1 FROM users WHERE email=? or username = ?`,
         [email, username],
-        (error: any, row: unknown) => {
+        (error: any, row: any) => {
           if (error) {
             reject(error);
           } else {
@@ -65,12 +71,12 @@ module.exports = class SQLiteUsersManager {
       );
     });
   }
-  async getUserByUsername(username: string) {
+  async getUserByUsername(username: string): Promise<any> {
     return new Promise((resolve, reject) => {
       dbUsers.get(
         `SELECT * FROM users WHERE username=?`,
         [username],
-        (error: any, row: unknown) => {
+        (error: any, row: any) => {
           if (error) {
             reject(error);
           } else {
@@ -81,12 +87,12 @@ module.exports = class SQLiteUsersManager {
     });
   }
 
-  async getUserByUsernameOrEmail(usernameOrEmail: any) {
+  async getUserByUsernameOrEmail(usernameOrEmail: any): Promise<any> {
     return new Promise((resolve, reject) => {
       dbUsers.get(
         `SELECT * FROM users WHERE username=? or email=?`,
         [usernameOrEmail, usernameOrEmail],
-        (error: any, row: unknown) => {
+        (error: any, row: any) => {
           if (error) {
             reject(error);
           } else {
@@ -102,7 +108,7 @@ module.exports = class SQLiteUsersManager {
       dbUsers.get(
         `SELECT * FROM users WHERE id=?`,
         [id],
-        (error: any, row: unknown) => {
+        (error: any, row: any) => {
           if (error) {
             reject(error);
           } else {
@@ -113,9 +119,9 @@ module.exports = class SQLiteUsersManager {
     });
   }
 
-  async getUsers() {
+  async getUsers(): Promise<Array<any>> {
     return new Promise((resolve, reject) => {
-      dbUsers.all("SELECT * FROM users", [], (error: any, rows: unknown) => {
+      dbUsers.all("SELECT * FROM users", [], (error: any, rows: Array<any>) => {
         if (error) {
           reject(error);
         } else {
@@ -125,3 +131,5 @@ module.exports = class SQLiteUsersManager {
     });
   }
 };
+
+export const usersManager = new SQLiteUsersManager();

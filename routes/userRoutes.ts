@@ -1,17 +1,15 @@
-require("dotenv").config();
 import { Request, Response } from "express";
+import { usersManager } from "../database/SQLiteUsersManager";
 import { User } from "../models/user";
+import * as bcrypt from "bcryptjs"
 const express = require("express");
 const cors = require("cors");
 const routerUsers = express.Router();
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 
 const corsOptions = require("../repositories/utils");
 const auth = require("../middleware/auth");
-const UsersManager = require("../database/SQLiteUsersManager");
 
-const usersManager = new UsersManager();
 
 routerUsers.use(express.json(), cors(corsOptions));
 
@@ -23,7 +21,8 @@ routerUsers.post("/register", async (req: Request, res: Response) => {
     const { username, email, phone, password } = req.body;
     // validate user input
     if (!(username && email && phone && password)) {
-      return res.status(400).send("All inputs are required");
+      res.status(400).send("All inputs are required");
+      return;
     }
 
     // check if user already exist
@@ -33,13 +32,20 @@ routerUsers.post("/register", async (req: Request, res: Response) => {
     }
 
     // encrypt the user password and add user
-    bcrypt.hash(password, 10, async (hash: any) => {
+    bcrypt.hash(password, 10, async (err: any, hash: any) => {
+
+      if (err) {
+        return res.status(501).send();
+        return;
+      }
+
       const user = {
         username: username,
         email: email,
         phone: phone,
         password: hash,
       };
+ 
       await usersManager.addUser(user);
       return res.status(201).json(user);
     });
@@ -91,6 +97,7 @@ routerUsers.post("/login", async (req: Request, res: Response) => {
 
       user.accessToken = accessToken;
       user.refreshToken = refreshToken;
+      delete user.password;
 
       // user
       res.status(200).json(user);
