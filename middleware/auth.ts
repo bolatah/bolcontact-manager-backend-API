@@ -1,21 +1,15 @@
-require("dotenv").config();
 import { Request, Response, NextFunction } from "express";
+import { IUser } from "../interfaces/userInterface";
 
-declare module "express" {
-  interface Request {
-    user?: any;
-  }
-}
+require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
 
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
-  const token =
-    req.body["access-token"] ||
-    req.query["access-token"] ||
-    req.headers["access-token"];
+  const authHeader =
+    (req.headers["Authorization"] as string) || req.headers["authorization"];
 
-  // decode token
+  const token = authHeader?.split(" ")[1];
   if (token) {
     // verifies secret and checks exp
     jwt.verify(
@@ -25,15 +19,15 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
         if (err) {
           return res.status(403).send({
             success: false,
-            message: "Failed to authenticate token.",
+            message: "Failed in authenticatazion token.",
           });
         } else {
           // if everything is good, save the request for use in other routes
-          req.user = user;
+          req.body.user = user;
+
           // the next function is important since it must be called from a middleware for the next middleware to be executed
           //  If this function is not called then none of the other middleware including the controller action will be called.
           next();
-          return;
         }
       }
     );

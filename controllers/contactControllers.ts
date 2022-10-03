@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Contact } from "../interfaces/contactInterface";
 
-const ContactsManager = require("../sql_service/contactDBService");
+const ContactsManager = require("../sql_service/DBService");
 const contactsManager = new ContactsManager();
 
 declare module "express" {

@@ -1,34 +1,34 @@
 import { NextFunction, Request, Response } from "express";
-import { IUser } from "../interfaces/userInterface";
+import { IRefreshToken, IUser } from "../interfaces/userInterface";
 import bcrypt from "bcryptjs";
+import * as jwt from "jsonwebtoken";
 
-const jwt = require("jsonwebtoken");
 const User = require("../interfaces/userInterface");
-const UsersManager = require("../sql_service/userDBService");
+const UsersManager = require("../sql_service/DBService");
 const usersManager = new UsersManager();
 
 module.exports = class UserControllers {
   handleLogin = async (req: Request, res: Response) => {
+    const cookies = req.cookies;
+    const { username, password } = req.body;
     try {
-      const cookies = req.cookies;
-      const { username, password } = req.body;
       if (!(username && password)) {
         res.status(400).send("All inputs are required");
       }
 
       // validate if user exist in our database
-      const foundUser = await usersManager.getUserByUsernameOrEmail(username);
+      const data = await usersManager.getUserByUsernameOrEmail(username);
+      const foundUser = data.rows[0];
       const match = await bcrypt.compare(password, foundUser.password);
-      // console.log(foundUser);
       if (foundUser && match) {
-        const accessToken = await jwt.sign(
+        const accessToken = jwt.sign(
           { username: foundUser.username },
           process.env.ACCESS_TOKEN_KEY,
           {
             expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
           }
         );
-        const newRefreshToken = await jwt.sign(
+        const newRefreshToken = jwt.sign(
           { username: foundUser.username },
           process.env.REFRESH_TOKEN_KEY,
           {
@@ -36,58 +36,44 @@ module.exports = class UserControllers {
           }
         );
 
-        // console.log(`accessToken: ${accessToken}`);
-        // console.log(`accessTokenLength: ${accessToken.length}`);
-        // console.log(`newRefreshToken: ${newRefreshToken}`);
-        // console.log(`newRefreshTokenLength: ${newRefreshToken.length}`);
+        let newRefreshTokenArray: IRefreshToken[] = !cookies.jwt
+          ? foundUser.refresh_token.token == ""
+            ? []
+            : foundUser.refresh_token
+          : foundUser.refresh_token.filter((rt) => rt["token"] !== cookies.jwt);
 
-        let newRefreshTokenString = !`${cookies?.jwt}`
-          ? `${foundUser.refreshToken}` // if no cookie, use the old refresh token
-          : `${foundUser.refreshToken}`.replace(`${cookies?.jwt}`, ""); // if cookie, use the new refresh token
-        //foundUser.refreshToken.filter((rt) => rt !== cookies.jwt);
-
-        // console.log(`refreshToken: ${foundUser.refreshToken}`);
-        // console.log(`newRefreshTokenString: ${newRefreshTokenString}`);
-        // console.log(`cookies: ${JSON.stringify(cookies)}`);
+        // console.log(`newRefreshTokenArray: ${newRefreshTokenArray}`);
 
         if (cookies?.jwt) {
-          // if cookie, delete the old refresh token
-          const refreshToken = `${cookies.jwt}`;
-          const foundTokenCheck = foundUser.refreshToken.includes(refreshToken);
+          const jwtToken = cookies.jwt;
+          const foundTokenCheck = foundUser.refresh_token.some(
+            (token) => token.token === jwtToken
+          );
 
           if (foundTokenCheck === false) {
-            // if the old refresh token is not in the database, delete it
-            newRefreshTokenString = "";
+            newRefreshTokenArray = [];
           }
           res.clearCookie("jwt", {
             httpOnly: true,
-            sameSite: "none",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             secure: process.env.NODE_ENV === "production" ? true : false,
           });
         }
-        // console.log(
-        //   `foundUserRefreshToken: ${foundUser.refreshToken}`,
-        //   `newRefreshTokenString: ${newRefreshTokenString}`
-        // );
+        console.log(`newRefreshTokenArray: ${newRefreshTokenArray.length}`);
 
-        // saving resfresh token to user
-        foundUser.refreshToken = newRefreshTokenString.startsWith("null")
-          ? newRefreshTokenString
-              .replace("null", "")
-              .concat(`${newRefreshToken}`)
-          : // .concat(`${newRefreshToken}rt_`)
-            newRefreshTokenString.substring(155).concat(`${newRefreshToken}`);
-        // : newRefreshTokenString.split("rt_")[1].concat(`${newRefreshToken}`);
-        // console.log(`foundUserRefreshToken: ${foundUser.refreshToken}`);
+        for (let i = 1; i < newRefreshTokenArray.length; i++) {
+          foundUser.refresh_token = [
+            ...newRefreshTokenArray,
+            { index: i, token: newRefreshToken },
+          ];
 
-        const id = parseInt(foundUser.id);
+          console.log(`foundUser.refresh_token: ${foundUser.refresh_token}`);
 
-        const handleUpdateRefreshToken = await usersManager.updateRefreshToken(
-          id,
-          foundUser
-        );
-        // console.log(foundUser);
-        // console.log(`handleUpdateRefreshToken: ${handleUpdateRefreshToken}`);
+          const x = await usersManager.updateRefreshToken(
+            foundUser,
+            foundUser.user_id
+          );
+        }
 
         res
           .status(200)
@@ -98,8 +84,9 @@ module.exports = class UserControllers {
                 parseInt(process.env.REFRESH_TOKEN_EXPIRATION) * 60 * 1000
             ),
             maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRATION) * 60 * 1000,
-            sameSite: "none",
+
             secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
           })
           .cookie("logged_in", true, {
             httpOnly: false,
@@ -109,10 +96,9 @@ module.exports = class UserControllers {
             ),
             maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRATION) * 60 * 1000,
             secure: process.env.NODE_ENV === "production" ? true : false,
-            sameSite: "none",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
           })
           .json({ user: foundUser, accessToken: accessToken });
-        // console.log(res.cookie);
         cookies.jwt = newRefreshToken;
       }
     } catch (err) {
@@ -134,7 +120,7 @@ module.exports = class UserControllers {
         return res.status(409).send("User already exists");
       }
 
-      bcrypt.hash(password, 10, async (err: any, hash: any) => {
+      bcrypt.hash(password as string, 10, async (err: Error, hash: string) => {
         if (err) {
           return res.status(401).send("Wrong password");
         }
@@ -156,8 +142,7 @@ module.exports = class UserControllers {
 
   handleLogout = async (req: Request, res: Response, err: Error) => {
     try {
-      res.cookie("accessToken", "", { maxAge: 1 });
-      res.cookie("refreshToken", "", { maxAge: 1 });
+      res.cookie("jwt", "", { maxAge: 1 });
       res
         .cookie("logged_in", "", {
           maxAge: 1,
@@ -171,20 +156,18 @@ module.exports = class UserControllers {
   };
 
   getAllUsers = async (req: Request, res: Response) => {
-    const users = await usersManager.getUsers();
-    users.forEach((user: IUser) => {
-      user.href = `/api/users/${user.id}`;
+    const data = await usersManager.getUsers();
+    const users = data.rows;
+    users.forEach((user) => {
+      user.href = `/api/users/${user.user_id}`;
     });
     res.status(200).send(users);
   };
-  handleTest = (req: Request, res: Response) => {
-    res.status(200).json({ test: "test" });
-  };
-
   getUserByID = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
-    const user = await usersManager.getUserById(id);
-    if (user) {
+    const data = await usersManager.getUserById(id);
+    const user = data.rows;
+    if (user.length > 0) {
       res.status(200).send(user);
       console.log("showing an user");
     } else {
@@ -192,103 +175,113 @@ module.exports = class UserControllers {
     }
   };
 
-  handleRefreshToken = (req: Request, res: Response) => {
+  handleRefreshToken = async (req: Request, res: Response): Promise<void> => {
     const cookies = req.cookies;
-    if (!cookies?.jwt) {
-      return res.status(401).send("No token found");
-    }
-    console.log(`cookies: ${JSON.stringify(cookies.jwt)}`);
-    const refreshToken = cookies.jwt;
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production" ? true : false,
-    });
+    console.log(cookies);
+    try {
+      if (!cookies?.jwt) {
+        res.status(401).send("No token as cookie found");
+      }
+      const refreshTokenFromCookie = cookies.jwt;
+      console.log(`refresh_token: ${refreshTokenFromCookie}`);
 
-    //const foundUser = usersManager.getUserByRefreshToken(refreshToken);
-    const foundUser = usersManager.getUserByRefreshToken(refreshToken);
+      res.clearCookie("jwt", {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+      });
 
-    if (!foundUser) {
+      const foundUserData = await usersManager.getUserByRefreshToken(
+        refreshTokenFromCookie
+      );
+      const foundUser: IUser = foundUserData.rows[0];
+
+      console.log(foundUserData);
+
+      if (!foundUser) {
+        jwt.verify(
+          refreshTokenFromCookie,
+          process.env.REFRESH_TOKEN_KEY,
+          async (err: any, decoded: any) => {
+            if (err) {
+              return res.status(403).send("Not authorized");
+            }
+            const hackedUser = await usersManager.getUserByUsernameOrEmail(
+              decoded.username
+            );
+            hackedUser.refresh_token = [];
+            // await hackedUser.save();
+          }
+        );
+      }
+
+      const newRefreshTokenArray = foundUser.refresh_token.filter(
+        (rt) => rt.token !== refreshTokenFromCookie
+      );
+
       jwt.verify(
-        refreshToken,
+        refreshTokenFromCookie,
         process.env.REFRESH_TOKEN_KEY,
-        async (err: any, decoded: any) => {
+        async (err: Error, decoded: IUser) => {
           if (err) {
+            // expired refresh token
+            foundUser.refresh_token = [...newRefreshTokenArray];
+            await usersManager.updateRefreshToken(foundUser, foundUser.user_id);
+          }
+          if (err || decoded.username !== foundUser.username) {
             return res.status(403).send("Forbidden");
           }
-          const hackedUser = await usersManager.getUserByUsernameOrEmail(
-            decoded.username
+
+          // refresh token is valid
+          const accessToken = jwt.sign(
+            { username: decoded.username },
+            process.env.ACCESS_TOKEN_KEY,
+            {
+              expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
+            }
           );
-          hackedUser.refreshToken = "";
-          // await hackedUser.save();
+
+          const newRefreshToken = JSON.stringify({
+            token: jwt.sign(
+              { username: foundUser.username },
+              process.env.REFRESH_TOKEN_KEY,
+              {
+                expiresIn: process.env.REFRESH_TOKEN_EXPIRATION,
+              }
+            ),
+          });
+          for (let i = 1; i < newRefreshTokenArray.length; ) {
+            foundUser.refresh_token = [
+              ...newRefreshTokenArray,
+              { index: i, token: newRefreshToken },
+            ];
+
+            const x = await usersManager.updateRefreshToken(
+              foundUser,
+              foundUser.user_id
+            );
+            console.log(x);
+          }
+
+          cookies.jwt = newRefreshToken;
+
+          res
+            .status(200)
+            .cookie("jwt", newRefreshToken, {
+              httpOnly: true,
+              expires: new Date(
+                Date.now() +
+                  parseInt(process.env.REFRESH_TOKEN_EXPIRATION) * 60 * 1000
+              ),
+              sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+              secure: process.env.NODE_ENV === "production" ? true : false,
+            })
+            .json({ accessToken });
         }
       );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
     }
-
-    const newRefreshTokenString = JSON.stringify(
-      foundUser.refreshToken.replace(`${refreshToken}`, "")
-    );
-    console.log(`newRefreshTokenString: ${newRefreshTokenString}`);
-    // const newRefreshTokenArray = foundUser.refreshToken.filter(
-    //   (token) => token !== refreshToken
-    // );
-
-    jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_KEY,
-      async (err: any, decoded: any) => {
-        if (err) {
-          // expired refresh token
-          foundUser.refreshToken = newRefreshTokenString;
-          // await foundUser.save();
-        }
-        if (err || decoded.username !== foundUser.username) {
-          return res.status(403).send("Forbidden refresh token");
-        }
-
-        // refresh token is valid
-        const accessToken = jwt.sign(
-          { username: decoded.username },
-          process.env.ACCESS_TOKEN_KEY,
-          {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
-          }
-        );
-        // req.headers["Authorization"] = `Bear ${accessToken}`;
-
-        const newRefreshToken = jwt.sign(
-          { username: decoded.username },
-          process.env.REFRESH_TOKEN_KEY,
-          {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRATION,
-          }
-        );
-
-        foundUser.refreshToken = newRefreshTokenString.startsWith("null")
-          ? newRefreshTokenString
-              .replace("null", "")
-              .concat(`${newRefreshToken}`)
-          : // .concat(`${newRefreshToken}rt_`)
-            newRefreshTokenString.substring(155).concat(`${newRefreshToken}`);
-        // : newRefreshTokenString.split("rt_")[1].concat(`${newRefreshToken}`);
-        console.log(`foundUserRefreshToken: ${foundUser.refreshToken}`);
-
-        const id = parseInt(foundUser.id);
-
-        await usersManager.updateRefreshToken(id, foundUser);
-
-        cookies.jwt = newRefreshToken;
-
-        res
-          .cookie("jwt", newRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production" ? true : false,
-            sameSite: "none",
-            maxAge: 24 * 60 * 60 * 1000,
-          })
-          .status(200)
-          .json(accessToken);
-      }
-    );
   };
 };

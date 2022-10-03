@@ -1,11 +1,14 @@
 export interface IUser {
-  id: string;
+  user_id: string;
   username: string;
   email: string;
   phone: number;
   password: string;
-  refreshToken: string[];
+  refresh_token: IRefreshToken[];
   href?: string;
 }
 
-export const defaultRefreshToken = "";
+export interface IRefreshToken {
+  index: number;
+  token: string;
+}
