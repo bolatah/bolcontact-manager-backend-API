@@ -28,7 +28,7 @@ app.use(
 app.use(
   cors({
     credentials: true,
-    origin: process.env.REACT_APP_ORIGIN || "http://localhost:3000",
+    origin: "https://bolatah-contact-manager.herokuapp.com",
     allowedHeaders: [
       "Authorization",
       "Content-Type",
