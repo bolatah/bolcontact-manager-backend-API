@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import express, { Express } from "express";
 const cors = require("cors");
-const path = require("path");
 
 const passport = require("passport");
 
