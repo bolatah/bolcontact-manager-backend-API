@@ -1,10 +1,7 @@
-import { NextFunction, Request, Response } from "express";
-import mongoose, { Model } from "mongoose";
-import { Multer } from "multer";
+import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { IContact } from "../models/contact";
 const Contact = mongoose.model<IContact>("Contact");
-const passport = require("passport");
-const utils = require("../lib/utils");
 
 declare module "express" {
   interface Request {
@@ -22,7 +19,6 @@ module.exports = class ContactControllers {
   handleAddContactWithUpload = async (req: Request, res: Response) => {
     try {
       const { id, name, email, phone, message, file } = req.body;
-      console.log(name, email, file);
       const fileForm = req.file;
 
       const newContact = new Contact<IContact>({

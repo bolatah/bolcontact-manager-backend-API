@@ -40,18 +40,24 @@ app.use(
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
 );
-
+app.use(express.static("public"));
+/* app.use(
+  express.static(
+    path.resolve(__dirname, "/home/bolat/projects/contact-manager/client/build")
+  )
+); */
+/* app.get("*", function (_request, response) {
+  response.sendFile(
+    path.resolve(
+      __dirname,
+      "/home/bolat/projects/contact-manager/client/build",
+      "index.html"
+    )
+  );
+}); */
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
-
-// Error Handling
-/* app.use((req, res, next) => {
-  const error = new Error("Not Found");
-  return res.status(404).json({
-    message: error.message,
-  });
-}); */
 
 // listen to port
 app.listen(PORT, () => {
