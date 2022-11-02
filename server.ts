@@ -25,8 +25,10 @@ app.use(
     parameterLimit: 50000,
   })
 );
+
 app.use(express.static("public"));
-/* app.use(
+
+app.use(
   cors({
     credentials: true,
     origin: process.env.REACT_APP_ORIGIN,
@@ -39,10 +41,10 @@ app.use(express.static("public"));
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
-); */
+);
 
 /** API Access Policies */
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -53,7 +55,7 @@ app.use((req, res, next) => {
     return res.status(200).json({});
   }
   next();
-});
+}); */
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
