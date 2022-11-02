@@ -37,7 +37,7 @@ app.use(
       "Content-Type",
       "Origin",
       "Accept",
-      " X-Requested-Wit",
+      " X-Requested-With",
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
