@@ -54,14 +54,14 @@ module.exports = class UserControllers {
     }
   };
 
-  handleLogout = async (req: Request, res: Response, next: NextFunction) => {
+  /*  handleLogout = async (req: Request, res: Response, next: NextFunction) => {
     req.logout(function (err: Error) {
       if (err) {
         return next(err);
       }
       res.redirect("/");
     });
-  };
+  }; */
 
   /*  getAllUsers = async (req: Request, res: Response) => {
     const data = await usersManager.getUsers();
