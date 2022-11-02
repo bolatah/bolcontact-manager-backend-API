@@ -31,7 +31,7 @@ app.use(express.static("public"));
 app.use(
   cors({
     credentials: true,
-    origin: process.env.REACT_APP_ORIGIN,
+    origin: "*",
     allowedHeaders: [
       "Authorization",
       "Content-Type",
