@@ -25,10 +25,11 @@ app.use(
     parameterLimit: 50000,
   })
 );
+//app.use(express.static("public"));
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: process.env.REACT_APP_ORIGIN,
     allowedHeaders: [
       "Authorization",
       "Content-Type",
@@ -39,21 +40,20 @@ app.use(
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
 );
-app.use(express.static("public"));
-/* app.use(
-  express.static(
-    path.resolve(__dirname, "/home/bolat/projects/contact-manager/client/build")
-  )
-); */
-/* app.get("*", function (_request, response) {
-  response.sendFile(
-    path.resolve(
-      __dirname,
-      "/home/bolat/projects/contact-manager/client/build",
-      "index.html"
-    )
+
+/* /** API Access Policies */
+/* app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
-}); */
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+    return res.status(200).json({});
+  }
+  next();
+});  */
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
