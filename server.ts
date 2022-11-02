@@ -40,6 +40,7 @@ app.use(
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
 ); */
+app.use(cors({}));
 
 /** API Access Policies */
 app.use((req, res, next) => {
