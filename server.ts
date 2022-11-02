@@ -26,9 +26,7 @@ app.use(
   })
 );
 
-app.use(express.static("public"));
-
-app.use(
+/* app.use(
   cors({
     credentials: true,
     origin: "*",
@@ -41,10 +39,10 @@ app.use(
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
-);
+); */
 
 /** API Access Policies */
-/* app.use((req, res, next) => {
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -55,12 +53,13 @@ app.use(
     return res.status(200).json({});
   }
   next();
-}); */
+});
+app.use(express.static("public"));
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
 
 // listen to port
-/* app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`web service is listening to  http://${HOST}:${PORT}`);
-}); */
+});
