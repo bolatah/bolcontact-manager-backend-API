@@ -6,8 +6,8 @@ const passport = require("passport");
 
 dotenv.config();
 
-const PORT = process.env.PORT || 8000;
-const HOST = process.env.HOST || "localhost";
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.use(
   })
 );
 //app.use(express.static("public"));
-app.use(
+/* app.use(
   cors({
     credentials: true,
     origin: process.env.REACT_APP_ORIGIN,
@@ -39,10 +39,10 @@ app.use(
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
-);
+); */
 
-/* /** API Access Policies */
-/* app.use((req, res, next) => {
+/** API Access Policies */
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -53,7 +53,7 @@ app.use(
     return res.status(200).json({});
   }
   next();
-});  */
+});
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
