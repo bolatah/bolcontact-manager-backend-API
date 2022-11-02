@@ -61,6 +61,6 @@ app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
 
 // listen to port
-app.listen(PORT, () => {
+/* app.listen(PORT, () => {
   console.log(`web service is listening to  http://${HOST}:${PORT}`);
-});
+}); */
