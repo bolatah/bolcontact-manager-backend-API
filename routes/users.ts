@@ -12,7 +12,7 @@ router.post("/register", userControllers.handleRegister);
 
 router.post("/login", userControllers.handleLogin);
 
-router.delete("/logout", userControllers.handleLogout);
+//router.delete("/logout", userControllers.handleLogout);
 
 /* 
 router.get("/", userControllers.getAllUsers);
