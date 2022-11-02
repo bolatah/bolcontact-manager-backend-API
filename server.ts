@@ -26,10 +26,10 @@ app.use(
   })
 );
 
-/* app.use(
+app.use(
   cors({
     credentials: true,
-    origin: "*",
+    origin: "https://bolatah-contact-manager.herokuapp.com",
     allowedHeaders: [
       "Authorization",
       "Content-Type",
@@ -39,11 +39,10 @@ app.use(
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
-); */
-app.use(cors({ credentials: true }));
+);
 
 /** API Access Policies */
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -54,7 +53,7 @@ app.use((req, res, next) => {
     return res.status(200).json({});
   }
   next();
-});
+}); */
 app.use(express.static("public"));
 // Routes
 app.use("/api/users", require("./routes/users"));
