@@ -25,7 +25,7 @@ app.use(
     parameterLimit: 50000,
   })
 );
-//app.use(express.static("public"));
+app.use(express.static("public"));
 /* app.use(
   cors({
     credentials: true,
@@ -39,7 +39,7 @@ app.use(
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
-); */
+);  */
 
 /** API Access Policies */
 app.use((req, res, next) => {
