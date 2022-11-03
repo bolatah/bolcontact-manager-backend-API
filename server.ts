@@ -10,7 +10,7 @@ const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 
 const app = express();
-
+app.use(cors());
 require("./config/database");
 require("./models/user");
 require("./models/contact");
@@ -26,7 +26,7 @@ app.use(
   })
 );
 
-app.use(
+/* app.use(
   cors({
     credentials: true,
     origin: "https://bolatah-contact-manager.herokuapp.com",
@@ -39,7 +39,7 @@ app.use(
     ],
     allowedMethods: ["POST", "OPTIONS", "GET", "PUT", "DELETE"],
   })
-);
+); */
 
 /** API Access Policies */
 /* app.use((req, res, next) => {
