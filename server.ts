@@ -10,6 +10,7 @@ const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 
 const app = express();
+app.use(express.static("public"));
 app.use(cors());
 require("./config/database");
 require("./models/user");
@@ -54,7 +55,7 @@ app.use(
   }
   next();
 }); */
-app.use(express.static("public"));
+
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
