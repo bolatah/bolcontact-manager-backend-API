@@ -10,7 +10,7 @@ const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 
 const app = express();
-app.use(express.static("public"));
+
 app.use(cors());
 require("./config/database");
 require("./models/user");
@@ -26,7 +26,7 @@ app.use(
     parameterLimit: 50000,
   })
 );
-
+app.use(express.static("public"));
 /* app.use(
   cors({
     credentials: true,
