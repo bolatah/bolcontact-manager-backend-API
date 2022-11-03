@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.ts",
+  "engines": {
+    "npm": "8.x"
+  },
   "scripts": {
     "start": "nodemon server.ts",
     "test": "jest"
