@@ -2,22 +2,16 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Contact from "../models/contact";
 
-//const Contact = mongoose.model<IContact>("Contact");
-
-declare module "express" {
-  interface Request {
-    file?: any;
-  }
+interface IRequest extends Request {
+  file?: any;
 }
 
-declare module "express" {
-  interface Response {
-    buffer?: any;
-  }
+interface IResponse extends Response {
+  buffer?: any;
 }
 
 module.exports = class ContactControllers {
-  handleAddContactWithUpload = async (req: Request, res: Response) => {
+  handleAddContactWithUpload = async (req: IRequest, res: IResponse) => {
     try {
       const { name, user, email, phone, message, file } = req.body;
       const fileForm = req.file;
@@ -41,7 +35,7 @@ module.exports = class ContactControllers {
     }
   };
 
-  getAllContacts = async (_req: Request, res: Response) => {
+  getAllContacts = async (_req: IRequest, res: IResponse) => {
     const contacts = await Contact.find();
     contacts.forEach((contact) => {
       contact.href = `/api/contacts/${contact._id}`;
@@ -49,7 +43,7 @@ module.exports = class ContactControllers {
     res.status(200).send(contacts);
   };
 
-  getContactByID = async (req: Request, res: Response, err: Error) => {
+  getContactByID = async (req: IRequest, res: IResponse, err: Error) => {
     const id = req.params.id;
     await Contact.findById({ _id: id }).then((contact) => {
       if (contact) {
@@ -64,7 +58,7 @@ module.exports = class ContactControllers {
     });
   };
 
-  handleUpdateContact = async (req: Request, res: Response) => {
+  handleUpdateContact = async (req: IRequest, res: IResponse) => {
     try {
       const id = req.params.id;
       const update = req.body;
@@ -78,13 +72,13 @@ module.exports = class ContactControllers {
     }
   };
 
-  handleDeleteContact = async (req: Request, res: Response) => {
+  handleDeleteContact = async (req: IRequest, res: IResponse) => {
     const id = req.params.id;
     await Contact.findByIdAndRemove({ _id: id });
     res.status(200).json({ success: true, msg: "deleted" });
   };
 
-  getContactImage = async (req: Request, res: Response) => {
+  getContactImage = async (req: IRequest, res: IResponse) => {
     const id = req.params.id;
     // const c = await contactsManager.getContactImage(id);
     await Contact.findById({ _id: id }).then((contact) => {
@@ -97,52 +91,4 @@ module.exports = class ContactControllers {
       }
     });
   };
-  /*   
-
-  const id = req.params.id;
-    const contact = req.body;
-    console.log(id);
-    Contact.findByIdAndUpdate(
-      { _id: req.params.id },
-      { $set: req.body },
-      { new: true, runValidators: true },
-      function (err) {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.status(201).json({ success: true, contact: contact });
-        }
-      }
-    );
-     .exec()
-      .then((err) => {
-        if (err) {
-          res.status(500).send(err as Error);
-        } else {
-          res.status(201).json({ success: true, contact: contact });
-        }
-      }); 
-
-    /*   if (existingContact) {
-      const contact = req.body;
-      await contactsManager.updateContact(id, contact);
-      res.status(200).send();
-    } else {
-      const contact = req.body;
-      const id = await contactsManager.addContact(contact);
-      res.status(200).location(`/api/contacts/${id}`).send();
-    } */
-  /* 
-  getContactImage = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    const c = await contactsManager.getContactImage(id);
-    res.buffer(Buffer.from(c.img, "base64"));
-    res.send();
-  };
-
-  handleDeleteContact = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    await contactsManager.deleteContact(id);
-    res.status(200).send();
-  }; */
 };
