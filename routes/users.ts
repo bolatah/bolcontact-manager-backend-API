@@ -4,6 +4,8 @@ const router = express.Router();
 
 //const auth = require("../middleware/auth");
 
+const passport = require("passport");
+
 const UserControllers = require("../controllers/userControllers");
 
 const userControllers = new UserControllers();
@@ -14,10 +16,19 @@ router.post("/login", userControllers.handleLogin);
 
 //router.delete("/logout", userControllers.handleLogout);
 
-/* 
-router.get("/", userControllers.getAllUsers);
+router.get(
+  "/:id",
 
-router.get("/:id", userControllers.getUserByID);
+  passport.authenticate("jwt", { session: false }),
+
+  userControllers.getUserByID
+);
+
+router.get("/", userControllers.getAllUsers);
+/* 
+
+
+
 
 router.get("/refresh", userControllers.handleRefreshToken); */
 

@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { IContact } from "../models/contact";
-const Contact = mongoose.model<IContact>("Contact");
+import Contact from "../models/contact";
+
+//const Contact = mongoose.model<IContact>("Contact");
 
 declare module "express" {
   interface Request {
@@ -18,15 +19,17 @@ declare module "express" {
 module.exports = class ContactControllers {
   handleAddContactWithUpload = async (req: Request, res: Response) => {
     try {
-      const { id, name, email, phone, message, file } = req.body;
+      const { name, user, email, phone, message, file } = req.body;
       const fileForm = req.file;
 
-      const newContact = new Contact<IContact>({
-        _id: id,
+      const newContact = new Contact({
+        _id: new mongoose.Types.ObjectId(),
         name: name,
+        author: user,
         email: email,
         phone: phone,
         message: message,
+        dateCreated: new Date().toISOString(),
         file: fileForm ? fileForm.buffer?.toString("base64") : file,
       });
 
@@ -37,9 +40,10 @@ module.exports = class ContactControllers {
       res.status(404).json({ success: false, msg: err as Error });
     }
   };
+
   getAllContacts = async (_req: Request, res: Response) => {
     const contacts = await Contact.find();
-    contacts.forEach((contact: IContact) => {
+    contacts.forEach((contact) => {
       contact.href = `/api/contacts/${contact._id}`;
     });
     res.status(200).send(contacts);
@@ -49,7 +53,11 @@ module.exports = class ContactControllers {
     const id = req.params.id;
     await Contact.findById({ _id: id }).then((contact) => {
       if (contact) {
-        res.status(200).json({ sucess: true, contact: contact });
+        res.status(200).json({
+          sucess: true,
+          contact: contact,
+          href: `/api/contacts/${contact._id}`,
+        });
       } else {
         res.status(404).json({ success: false, msg: err });
       }
@@ -69,11 +77,13 @@ module.exports = class ContactControllers {
       res.status(500).send(`Server error`);
     }
   };
+
   handleDeleteContact = async (req: Request, res: Response) => {
     const id = req.params.id;
     await Contact.findByIdAndRemove({ _id: id });
     res.status(200).json({ success: true, msg: "deleted" });
   };
+
   getContactImage = async (req: Request, res: Response) => {
     const id = req.params.id;
     // const c = await contactsManager.getContactImage(id);

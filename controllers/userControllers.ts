@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import { IUser } from "../models/user";
-const User = mongoose.model<IUser>("User");
+import User from "../models/user";
 const utils = require("../lib/utils");
 
 module.exports = class UserControllers {
@@ -32,12 +31,14 @@ module.exports = class UserControllers {
       }
     });
   };
+
   handleRegister = async (req: Request, res: Response) => {
     const saltHash = utils.genPassword(req.body.password);
     const salt = saltHash.salt;
     const hash = saltHash.hash;
 
     const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
       username: req.body.username,
       email: req.body.email,
       phone: req.body.phone,
@@ -46,7 +47,7 @@ module.exports = class UserControllers {
     });
 
     try {
-      newUser.save().then((user: IUser) => {
+      newUser.save().then((user) => {
         res.json({ success: true, user: user });
       });
     } catch (err) {
@@ -63,23 +64,23 @@ module.exports = class UserControllers {
     });
   }; */
 
-  /*  getAllUsers = async (req: Request, res: Response) => {
-    const data = await usersManager.getUsers();
-    const users = data.rows;
+  getAllUsers = async (_req: Request, res: Response) => {
+    const users = await User.find();
     users.forEach((user) => {
-      user.href = `/api/users/${user.user_id}`;
+      user.href = `/api/users/${user._id}`;
     });
     res.status(200).send(users);
-  }; */
-  /*   getUserByID = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    const data = await usersManager.getUserById(id);
-    const user = data.rows;
-    if (user.length > 0) {
-      res.status(200).send(user);
+  };
+
+  getUserByID = async (req: Request, res: Response) => {
+    const id = req.params.id;
+    //const data = await usersManager.getUserById(id);
+    const user = await User.findById({ _id: id });
+    if (user) {
+      res.status(200).json({ success: true, user: user });
       console.log("showing an user");
     } else {
-      res.status(404).send();
+      res.status(404).json({ success: false });
     }
-  }; */
+  };
 };
