@@ -5,8 +5,6 @@ import passport from "passport";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 8001;
-
 const app = express();
 
 require("./config/database");
@@ -43,6 +41,6 @@ app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
 
 // listen to port
-app.listen(PORT, () => {
+app.listen(8000, () => {
   console.log(`web service has started`);
 });
