@@ -18,7 +18,7 @@ require("./config/passport")(passport);
 
 /* const corsOptions = {
   credentials: true,
-  origin: "http://localhost:3000",
+  origin: "https://bolatah-contact-manager.herokuapp.com/",
   allowedHeaders: [
     "Authorization",
     "Content-Type",
@@ -26,9 +26,9 @@ require("./config/passport")(passport);
     "Accept",
     " X-Requested-With",
   ],
-}; */
+};
 
-app.use(cors());
+app.use(cors(corsOptions)); */
 app.use(passport.initialize());
 app.use(express.json({ limit: "50mb" }));
 app.use(

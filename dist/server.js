@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const dotenv_1 = tslib_1.__importDefault(require("dotenv"));
 const express_1 = tslib_1.__importDefault(require("express"));
-const cors_1 = tslib_1.__importDefault(require("cors"));
 const users_1 = tslib_1.__importDefault(require("./routes/users"));
 const contacts_1 = tslib_1.__importDefault(require("./routes/contacts"));
 const passport_1 = tslib_1.__importDefault(require("passport"));
@@ -14,18 +13,19 @@ require("./config/database");
 require("./models/user");
 require("./models/contact");
 require("./config/passport")(passport_1.default);
-const corsOptions = {
-    credentials: true,
-    origin: "http://localhost:3000",
-    allowedHeaders: [
-        "Authorization",
-        "Content-Type",
-        "Origin",
-        "Accept",
-        " X-Requested-With",
-    ],
+/* const corsOptions = {
+  credentials: true,
+  origin: "https://bolatah-contact-manager.herokuapp.com/",
+  allowedHeaders: [
+    "Authorization",
+    "Content-Type",
+    "Origin",
+    "Accept",
+    " X-Requested-With",
+  ],
 };
-app.use((0, cors_1.default)());
+
+app.use(cors(corsOptions)); */
 app.use(passport_1.default.initialize());
 app.use(express_1.default.json({ limit: "50mb" }));
 app.use(express_1.default.urlencoded({
