@@ -10,7 +10,7 @@ interface IResponse extends Response {
   buffer?: any;
 }
 
-module.exports = class ContactControllers {
+export class ContactControllers {
   handleAddContactWithUpload = async (req: IRequest, res: IResponse) => {
     try {
       const { name, user, email, phone, message, file } = req.body;
@@ -43,7 +43,7 @@ module.exports = class ContactControllers {
     res.status(200).send(contacts);
   };
 
-  getContactByID = async (req: IRequest, res: IResponse, err: Error) => {
+  getContactByID = async (req: IRequest, res: IResponse) => {
     const id = req.params.id;
     await Contact.findById({ _id: id }).then((contact) => {
       if (contact) {
@@ -53,7 +53,7 @@ module.exports = class ContactControllers {
           href: `/api/contacts/${contact._id}`,
         });
       } else {
-        res.status(404).json({ success: false, msg: err });
+        res.status(404).json({ success: false });
       }
     });
   };
@@ -91,4 +91,4 @@ module.exports = class ContactControllers {
       }
     });
   };
-};
+}

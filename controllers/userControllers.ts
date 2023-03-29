@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import User from "../models/user";
-const utils = require("../lib/utils");
+import utils from "../lib/utils";
 
-module.exports = class UserControllers {
+export class UserControllers {
   handleLogin = async (req: Request, res: Response) => {
     User.findOne({ username: req.body.username }).then((user) => {
       if (!user) {
@@ -83,4 +83,4 @@ module.exports = class UserControllers {
       res.status(404).json({ success: false });
     }
   };
-};
+}

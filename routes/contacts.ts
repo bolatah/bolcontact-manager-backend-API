@@ -1,12 +1,12 @@
-const express = require("express");
+import express from "express";
 
 const router = express.Router();
 
-const ContactControllers = require("../controllers/contactControllers");
+import { ContactControllers } from "../controllers/contactControllers";
 const contactControllers = new ContactControllers();
 
-const multer = require("multer");
-const passport = require("passport");
+import multer from "multer";
+import passport from "passport";
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.get(
@@ -37,4 +37,4 @@ router.delete("/:id", contactControllers.handleDeleteContact);
 router.get("/img/:id", contactControllers.getContactImage);
 
  */
-module.exports = router;
+export = router;

@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import userRoutes from "./routes/users";
+import contactRoutes from "./routes/contacts";
 import passport from "passport";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8001;
 
 const app = express();
 
@@ -36,13 +38,14 @@ app.use(
     parameterLimit: 50000,
   })
 );
-app.use(express.static("build"));
+
+app.use(express.static("dist/build"));
 
 // Routes
-app.use("/api/users", require("./routes/users"));
-app.use("/api/contacts", require("./routes/contacts"));
+app.use("/api/users", userRoutes);
+app.use("/api/contacts", contactRoutes);
 
 // listen to port
 app.listen(PORT, () => {
-  console.log(`web service has started`);
+  console.log(`web service has started at ${PORT}`);
 });

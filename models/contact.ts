@@ -23,5 +23,5 @@ const contactSchema = new Schema<IContact>({
   message: String,
   dateCreated: Date,
 });
-
-export default mongoose.model("Contact", contactSchema);
+const Contact = mongoose.model("Contact", contactSchema);
+export default Contact;

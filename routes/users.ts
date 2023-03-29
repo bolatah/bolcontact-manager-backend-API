@@ -1,12 +1,9 @@
 import express from "express";
+import passport from "passport";
 
 const router = express.Router();
 
-//const auth = require("../middleware/auth");
-
-const passport = require("passport");
-
-const UserControllers = require("../controllers/userControllers");
+import { UserControllers } from "../controllers/userControllers";
 
 const userControllers = new UserControllers();
 
@@ -25,11 +22,5 @@ router.get(
 );
 
 router.get("/", userControllers.getAllUsers);
-/* 
 
-
-
-
-router.get("/refresh", userControllers.handleRefreshToken); */
-
-module.exports = router;
+export = router;

@@ -1,10 +1,9 @@
-const JwtStrategy = require("passport-jwt").Strategy;
-const ExtractJwt = require("passport-jwt").ExtractJwt;
-const fs = require("fs");
-const path = require("path");
-const User = require("mongoose").model("User");
+import { ExtractJwt, Strategy } from "passport-jwt";
+import fs from "fs";
+import path from "path";
+import User from "../models/user";
 
-const pathToKey = path.join(__dirname, "..", "id_rsa_pub.pem");
+const pathToKey = path.join(__dirname, "../../", "id_rsa_pub.pem");
 const PUB_KEY = fs.readFileSync(pathToKey, "utf8");
 
 // At a minimum, you must pass the `jwtFromRequest` and `secretOrKey` properties
@@ -15,10 +14,10 @@ const options = {
 };
 
 // app.js will pass the global passport object here, and this function will configure it
-module.exports = (passport) => {
+export = (passport) => {
   // The JWT payload is passed into the verify callback
   passport.use(
-    new JwtStrategy(options, function (jwt_payload, done) {
+    new Strategy(options, function (jwt_payload, done) {
       console.log(jwt_payload);
 
       // We will assign the `sub` property on the JWT to the database ID of user
