@@ -14,7 +14,7 @@ require("./config/database");
 require("./models/user");
 require("./models/contact");
 require("./config/passport")(passport_1.default);
-app.use((0, cors_1.default)({
+const corsOptions = {
     credentials: true,
     origin: "http://localhost:3000",
     allowedHeaders: [
@@ -24,7 +24,8 @@ app.use((0, cors_1.default)({
         "Accept",
         " X-Requested-With",
     ],
-}));
+};
+app.use((0, cors_1.default)());
 app.use(passport_1.default.initialize());
 app.use(express_1.default.json({ limit: "50mb" }));
 app.use(express_1.default.urlencoded({

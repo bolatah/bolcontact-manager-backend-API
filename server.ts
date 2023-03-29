@@ -16,19 +16,19 @@ require("./models/user");
 require("./models/contact");
 require("./config/passport")(passport);
 
-app.use(
-  cors({
-    credentials: true,
-    origin: "http://localhost:3000",
-    allowedHeaders: [
-      "Authorization",
-      "Content-Type",
-      "Origin",
-      "Accept",
-      " X-Requested-With",
-    ],
-  })
-);
+/* const corsOptions = {
+  credentials: true,
+  origin: "http://localhost:3000",
+  allowedHeaders: [
+    "Authorization",
+    "Content-Type",
+    "Origin",
+    "Accept",
+    " X-Requested-With",
+  ],
+}; */
+
+app.use(cors());
 app.use(passport.initialize());
 app.use(express.json({ limit: "50mb" }));
 app.use(
