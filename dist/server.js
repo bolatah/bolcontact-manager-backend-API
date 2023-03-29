@@ -4,9 +4,6 @@ const tslib_1 = require("tslib");
 const dotenv_1 = tslib_1.__importDefault(require("dotenv"));
 const express_1 = tslib_1.__importDefault(require("express"));
 const cors_1 = tslib_1.__importDefault(require("cors"));
-/* import "./config/database";
-import "./models/user";
-import "./models/contact"; */
 const users_1 = tslib_1.__importDefault(require("./routes/users"));
 const contacts_1 = tslib_1.__importDefault(require("./routes/contacts"));
 const passport_1 = tslib_1.__importDefault(require("passport"));

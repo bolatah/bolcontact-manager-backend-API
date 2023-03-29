@@ -2,8 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContactControllers = void 0;
 const tslib_1 = require("tslib");
+/* import { Request, Response } from "express"; */
 const mongoose_1 = tslib_1.__importDefault(require("mongoose"));
 const contact_1 = tslib_1.__importDefault(require("../models/contact"));
+/*
+interface IRequest extends Request {
+  file?: any;
+}
+
+interface IResponse extends Response {
+  buffer?: any;
+} */
 class ContactControllers {
     constructor() {
         this.handleAddContactWithUpload = (req, res) => tslib_1.__awaiter(this, void 0, void 0, function* () {

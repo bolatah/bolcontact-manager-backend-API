@@ -1,17 +1,17 @@
-import { Request, Response } from "express";
+/* import { Request, Response } from "express"; */
 import mongoose from "mongoose";
 import Contact from "../models/contact";
-
+/* 
 interface IRequest extends Request {
   file?: any;
 }
 
 interface IResponse extends Response {
   buffer?: any;
-}
+} */
 
 export class ContactControllers {
-  handleAddContactWithUpload = async (req: IRequest, res: IResponse) => {
+  handleAddContactWithUpload = async (req, res) => {
     try {
       const { name, user, email, phone, message, file } = req.body;
       const fileForm = req.file;
@@ -35,7 +35,7 @@ export class ContactControllers {
     }
   };
 
-  getAllContacts = async (_req: IRequest, res: IResponse) => {
+  getAllContacts = async (_req, res) => {
     const contacts = await Contact.find();
     contacts.forEach((contact) => {
       contact.href = `/api/contacts/${contact._id}`;
@@ -43,7 +43,7 @@ export class ContactControllers {
     res.status(200).send(contacts);
   };
 
-  getContactByID = async (req: IRequest, res: IResponse) => {
+  getContactByID = async (req, res) => {
     const id = req.params.id;
     await Contact.findById({ _id: id }).then((contact) => {
       if (contact) {
@@ -58,7 +58,7 @@ export class ContactControllers {
     });
   };
 
-  handleUpdateContact = async (req: IRequest, res: IResponse) => {
+  handleUpdateContact = async (req, res) => {
     try {
       const id = req.params.id;
       const update = req.body;
@@ -72,13 +72,13 @@ export class ContactControllers {
     }
   };
 
-  handleDeleteContact = async (req: IRequest, res: IResponse) => {
+  handleDeleteContact = async (req, res) => {
     const id = req.params.id;
     await Contact.findByIdAndRemove({ _id: id });
     res.status(200).json({ success: true, msg: "deleted" });
   };
 
-  getContactImage = async (req: IRequest, res: IResponse) => {
+  getContactImage = async (req, res) => {
     const id = req.params.id;
     // const c = await contactsManager.getContactImage(id);
     await Contact.findById({ _id: id }).then((contact) => {
