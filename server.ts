@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
-import cors from "cors";
+//import cors from "cors";
 import userRoutes from "./routes/users";
 import contactRoutes from "./routes/contacts";
 import passport from "passport";
